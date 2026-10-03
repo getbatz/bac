@@ -13,7 +13,10 @@ export default function RootLayout({ children }) {
           src="https://telegram.org/js/telegram-web-app.js"
           strategy="beforeInteractive"
         />
-        <script src="https://cdn.tailwindcss.com"></script>
+        <Script
+          src="https://cdn.tailwindcss.com"
+          strategy="beforeInteractive"
+        />
       </head>
       <body className="bg-slate-900 text-white font-sans antialiased min-h-screen">
         {children}
