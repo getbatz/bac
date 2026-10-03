@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MapPin, Navigation, CreditCard, Banknote, Car, CheckCircle2 } from 'lucide-react';
+import { MapPin, Navigation, CreditCard, Banknote, Car } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function Home() {
@@ -28,7 +28,6 @@ export default function Home() {
     }
   }, []);
 
-  // Создание или обновление профиля пассажира
   const syncProfile = async (user) => {
     try {
       await supabase.from('profiles').upsert(
@@ -45,7 +44,6 @@ export default function Home() {
     }
   };
 
-  // Создание заказа в базе данных
   const handleOrder = async () => {
     if (!destination.trim()) {
       alert('Пожалуйста, укажите пункт назначения');
@@ -55,21 +53,23 @@ export default function Home() {
     setIsOrdering(true);
 
     try {
-      // Ищем ID профиля по telegram_id
       let profileId = null;
       if (tgUser) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('id')
           .eq('telegram_id', tgUser.id)
-          .single();
-        if (profile) profileId = profile.id;
+          .maybeSingle();
+
+        if (profile) {
+          profileId = profile.id;
+        }
       }
 
       const orderData = {
         passenger_id: profileId,
         pickup_address: pickup,
-        pickup_lat: 52.4931, // Координаты Шарбакты по умолчанию
+        pickup_lat: 52.4931,
         pickup_lng: 78.1506,
         destination_address: destination,
         destination_lat: 52.4931,
@@ -86,12 +86,14 @@ export default function Home() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       setOrder(data);
     } catch (err) {
       console.error('Ошибка создания заказа:', err);
-      alert('Не удалось создать заказ. Попробуйте ещё раз.');
+      alert('Сбой сохранения: ' + (err.message || 'Проверьте соединение'));
     } finally {
       setIsOrdering(false);
     }
@@ -113,14 +115,14 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Выполнение или карта */}
+      {/* Экран активного заказа или форма */}
       {order ? (
         <div className="my-6 bg-slate-800/90 border border-yellow-400/50 p-6 rounded-3xl text-center space-y-4 shadow-xl">
           <div className="w-16 h-16 bg-yellow-400/10 text-yellow-400 rounded-full flex items-center justify-center mx-auto border border-yellow-400/30">
             <Car className="w-8 h-8 animate-pulse" />
           </div>
           <div>
-            <span className="text-xs font-bold text-yellow-400 uppercase tracking-widest">Заказ #{order.id.slice(0, 8)}</span>
+            <span className="text-xs font-bold text-yellow-400 uppercase tracking-widest">Заказ создан</span>
             <h2 className="text-lg font-extrabold text-white mt-1">Ищем ближайшего водителя</h2>
             <p className="text-xs text-slate-400 mt-1">Шарбакты • {order.destination_address}</p>
           </div>
@@ -158,7 +160,7 @@ export default function Home() {
             <span className="text-xs text-slate-400 font-medium z-10">Карта OpenStreetMap подключается...</span>
           </div>
 
-          {/* Выбор маршрута */}
+          {/* Маршрут */}
           <div className="space-y-3 bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
             <div className="flex items-center gap-3 bg-slate-900/80 p-3 rounded-xl border border-slate-700/80">
               <Navigation className="w-5 h-5 text-emerald-400 shrink-0" />
@@ -183,7 +185,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Выбор оплаты */}
+          {/* Оплата */}
           <div className="my-4 space-y-2">
             <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block px-1">
               Способ оплаты
@@ -226,7 +228,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Настройка сдачи для наличных */}
             {paymentMethod === 'cash' && (
               <div className="mt-3 bg-slate-800/40 p-3 rounded-xl border border-slate-700/60 space-y-2">
                 <div className="flex items-center justify-between text-xs text-slate-300">
@@ -266,7 +267,6 @@ export default function Home() {
             )}
           </div>
 
-          {/* Кнопка заказа */}
           <div className="pt-2">
             <button
               onClick={handleOrder}
